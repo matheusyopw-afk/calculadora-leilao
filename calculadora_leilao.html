@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Leilão — Vivendo de Leilão</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1916;
+    --surface2: #232219;
+    --border: #2e2c26;
+    --accent: #c8a94a;
+    --accent2: #e8c96a;
+    --text: #f0ece0;
+    --text2: #a09880;
+    --text3: #6a6555;
+    --danger: #e05555;
+    --success: #5aaf7a;
+    --warn: #d4883a;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  header span {
+    font-size: 0.75rem;
+    color: var(--text3);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    padding: 24px 40px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    padding: 10px 20px;
+    border-radius: 6px 6px 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text3);
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .tab:hover { color: var(--text2); }
+
+  .tab.active {
+    color: var(--accent);
+    background: var(--surface);
+    border-color: var(--border);
+    border-bottom: 1px solid var(--surface);
+    margin-bottom: -1px;
+  }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .panel-content { display: none; }
+  .panel-content.active { display: contents; }
+
+  /* SECTIONS */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* FORM */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .field-grid.full { grid-template-columns: 1fr; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 0.75rem;
+    color: var(--text2);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .label-hint {
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    padding: 10px 14px;
+    transition: border 0.2s;
+    width: 100%;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  input::placeholder { color: var(--text3); }
+
+  select { cursor: pointer; }
+  select option { background: var(--surface2); }
+
+  /* RANGE SLIDER */
+  .range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .range-wrap input[type=range] {
+    flex: 1;
+    padding: 0;
+    height: 4px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .range-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--accent);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* RESULTS */
+  .results-sticky {
+    position: sticky;
+    top: 90px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .result-header {
+    background: var(--surface2);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .result-header p {
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .result-body { padding: 20px; }
+
+  .result-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+
+  .result-metric:last-child { border-bottom: none; }
+
+  .metric-label {
+    font-size: 0.8rem;
+    color: var(--text2);
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .metric-label small {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-weight: 400;
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .metric-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: right;
+    min-width: 120px;
+  }
+
+  .metric-value.total {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .metric-value.positive { color: var(--success); }
+  .metric-value.negative { color: var(--danger); }
+  .metric-value.warn { color: var(--warn); }
+  .metric-value.accent { color: var(--accent); }
+
+  /* VERDICT */
+  .verdict {
+    margin-top: 16px;
+    border-radius: 6px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .verdict.go { background: rgba(90,175,122,0.12); border: 1px solid rgba(90,175,122,0.3); color: var(--success); }
+  .verdict.warn { background: rgba(212,136,58,0.12); border: 1px solid rgba(212,136,58,0.3); color: var(--warn); }
+  .verdict.stop { background: rgba(224,85,85,0.12); border: 1px solid rgba(224,85,85,0.3); color: var(--danger); }
+
+  .verdict-icon { font-size: 1.4rem; }
+
+  /* SECTION BADGE */
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .badge-jud { background: rgba(200,169,74,0.15); color: var(--accent); border: 1px solid rgba(200,169,74,0.3); }
+  .badge-ext { background: rgba(90,130,200,0.15); color: #7aade8; border: 1px solid rgba(90,130,200,0.3); }
+
+  /* TOGGLE */
+  .toggle-group {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .toggle-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* MINI COSTS TABLE */
+  .costs-table {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .costs-table tr td {
+    padding: 5px 0;
+    font-size: 0.78rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .costs-table tr td:first-child { color: var(--text3); }
+  .costs-table tr td:last-child { text-align: right; color: var(--text2); }
+
+  .costs-table tr.total-row td {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 4px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* NOTA */
+  .nota {
+    background: rgba(200,169,74,0.06);
+    border: 1px solid rgba(200,169,74,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .nota strong { color: var(--accent); }
+
+  /* CHECKLIST TAB */
+  .checklist-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .checklist-grid { grid-template-columns: 1fr; }
+  }
+
+  .checklist-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .checklist-header {
+    background: var(--surface2);
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .checklist-header h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.03em;
+  }
+
+  .checklist-body { padding: 16px 18px; }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s;
+  }
+
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { opacity: 0.85; }
+
+  .check-box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    font-size: 11px;
+  }
+
+  .check-item.checked .check-box {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+  }
+
+  .check-item.alert .check-box {
+    border-color: var(--danger);
+  }
+
+  .check-item.alert.checked .check-box {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
+
+  .check-label {
+    font-size: 0.8rem;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  .check-label strong { color: var(--text); font-size: 0.82rem; }
+
+  .check-label .risk-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .risk-alto { background: rgba(224,85,85,0.2); color: var(--danger); }
+  .risk-med { background: rgba(212,136,58,0.2); color: var(--warn); }
+
+  .checklist-progress {
+    margin-top: 12px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .checklist-progress-bar {
+    height: 100%;
+    background: var(--success);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .checklist-score {
+    font-size: 0.72rem;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-top: 6px;
+  }
+
+  /* LANCES TAB */
+  .lance-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .lance-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    color: var(--text3);
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lance-table td {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .lance-table tr:last-child td { border-bottom: none; }
+  .lance-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .lance-table .col-label { font-family: 'Syne', sans-serif; font-size: 0.8rem; color: var(--text2); }
+  .lance-table .col-val { color: var(--accent); font-weight: 500; }
+  .lance-table .col-lucro { color: var(--success); }
+  .lance-table .col-risco { }
+
+  .risco-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .risco-verde { background: rgba(90,175,122,0.15); color: var(--success); }
+  .risco-amarelo { background: rgba(212,136,58,0.15); color: var(--warn); }
+  .risco-vermelho { background: rgba(224,85,85,0.15); color: var(--danger); }
+
+  /* FULL WIDTH CONTAINER */
+  .container-full {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px;
+  }
+
+  /* HIGHLIGHT ROW */
+  .highlight-row td { background: rgba(200,169,74,0.06) !important; }
+  .highlight-row td:first-child { border-left: 2px solid var(--accent); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 900px) {
+    header { padding: 16px 20px; }
+    .container { grid-template-columns: 1fr; padding: 20px; }
+    .results-sticky { position: static; }
+    .tabs { padding: 16px 20px 0; overflow-x: auto; }
+    .container-full { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🏛️</div>
+  <div>
+    <h1>Calculadora de Leilão <span>Vivendo de Leilão</span></h1>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('viabilidade', this)">💰 Viabilidade Financeira</button>
+  <button class="tab" onclick="switchTab('checklist', this)">📋 Check-list Documental</button>
+  <button class="tab" onclick="switchTab('lances', this)">🎯 Estratégia de Lances</button>
+</div>
+
+<!-- ===================== TAB 1: VIABILIDADE ===================== -->
+<div id="tab-viabilidade" class="panel-content active">
+<div class="container">
+
+  <!-- LEFT: INPUTS -->
+  <div>
+
+    <!-- Tipo de pagamento -->
+    <div class="section">
+      <div class="section-title">Modalidade</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Tipo de Leilão</label>
+          <select id="tipo_leilao" onchange="calcular()">
+            <option value="ext">Extrajudicial (banco/credor)</option>
+            <option value="jud">Judicial (poder judiciário)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Forma de Pagamento</label>
+          <div class="toggle-group">
+            <button class="toggle-btn active" id="btn-avista" onclick="setPagamento('avista')">À Vista</button>
+            <button class="toggle-btn" id="btn-financiado" onclick="setPagamento('financiado')">Financiado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Valores do imóvel -->
+    <div class="section">
+      <div class="section-title">Imóvel & Mercado</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Preço de Mercado (R$) <span class="label-hint">Valor real do imóvel</span></label>
+          <input type="number" id="preco_mercado" placeholder="300.000" value="300000" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Lance Mínimo (R$) <span class="label-hint">Valor mínimo do edital</span></label>
+          <input type="number" id="lance_minimo" placeholder="180.000" value="180000" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Meu Lance (R$) <span class="label-hint">Quanto pretendo dar</span></label>
+          <input type="number" id="meu_lance" placeholder="200.000" value="200000" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Preço de Venda Esperado (R$)</label>
+          <input type="number" id="preco_venda" placeholder="290.000" value="290000" oninput="calcular()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Custos de aquisição -->
+    <div class="section">
+      <div class="section-title">Custos de Aquisição</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Comissão do Leiloeiro <span class="label-hint">% sobre o lance (geralmente 5%)</span></label>
+          <div class="range-wrap">
+            <input type="range" id="comissao_leiloeiro" min="0" max="10" step="0.5" value="5" oninput="syncRange('comissao_leiloeiro','v_comissao'); calcular()">
+            <span class="range-val" id="v_comissao">5%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>ITBI <span class="label-hint">% sobre o lance (BH: ~3%)</span></label>
+          <div class="range-wrap">
+            <input type="range" id="itbi" min="0" max="5" step="0.1" value="3" oninput="syncRange('itbi','v_itbi'); calcular()">
+            <span class="range-val" id="v_itbi">3%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Registro em Cartório <span class="label-hint">% aprox. sobre o lance</span></label>
+          <div class="range-wrap">
+            <input type="range" id="registro" min="0" max="3" step="0.1" value="1" oninput="syncRange('registro','v_registro'); calcular()">
+            <span class="range-val" id="v_registro">1%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Advogado (R$) <span class="label-hint">Se judicial ou desocupação</span></label>
+          <input type="number" id="advogado" placeholder="0" value="0" oninput="calcular()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Custos pós-arrematação -->
+    <div class="section">
+      <div class="section-title">Custos Pós-Arrematação</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Reforma Estimada (R$)</label>
+          <input type="number" id="reforma" placeholder="20.000" value="20000" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Prazo total estimado (meses) <span class="label-hint">Da arrematação até a venda</span></label>
+          <input type="number" id="prazo" placeholder="12" value="12" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Condomínio/mês (R$)</label>
+          <input type="number" id="condominio" placeholder="450" value="450" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>IPTU/mês (R$) <span class="label-hint">Valor anual ÷ 12</span></label>
+          <input type="number" id="iptu" placeholder="80" value="80" oninput="calcular()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Custos de venda -->
+    <div class="section">
+      <div class="section-title">Custos de Venda & Imposto</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Comissão Corretor <span class="label-hint">% sobre preço de venda</span></label>
+          <div class="range-wrap">
+            <input type="range" id="corretor" min="0" max="8" step="0.5" value="6" oninput="syncRange('corretor','v_corretor'); calcular()">
+            <span class="range-val" id="v_corretor">6%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>IR Ganho de Capital <span class="label-hint">15% até R$5M de ganho</span></label>
+          <div class="range-wrap">
+            <input type="range" id="ir_aliquota" min="0" max="22.5" step="2.5" value="15" oninput="syncRange('ir_aliquota','v_ir'); calcular()">
+            <span class="range-val" id="v_ir">15%</span>
+          </div>
+        </div>
+      </div>
+      <div class="nota">
+        <strong>IR calculado corretamente:</strong> A base é o ganho de capital real = preço de venda − (lance + comissão leiloeiro + ITBI + registro + advogado + reforma + juros de financiamento). Seguindo o curso, todos os custos de aquisição reduzem a base do IR.
+      </div>
+
+      <!-- Financiamento (hidden when à vista) -->
+      <div id="bloco-financiamento" style="display:none">
+        <div class="divider"></div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Entrada (%) <span class="label-hint">Mín. 5% em alguns casos</span></label>
+            <div class="range-wrap">
+              <input type="range" id="entrada_pct" min="5" max="80" step="5" value="20" oninput="syncRange('entrada_pct','v_entrada'); calcular()">
+              <span class="range-val" id="v_entrada">20%</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Taxa de juros anual (%)</label>
+            <input type="number" id="taxa_juros" placeholder="10.5" value="10.5" step="0.1" oninput="calcular()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lucro mínimo desejado -->
+    <div class="section">
+      <div class="section-title">Meta de Lucro</div>
+      <div class="field">
+        <label>Lucro líquido mínimo desejado (%)</label>
+        <div class="range-wrap">
+          <input type="range" id="lucro_min" min="5" max="60" step="5" value="30" oninput="syncRange('lucro_min','v_lucro_min'); calcular()">
+          <span class="range-val" id="v_lucro_min">30%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div class="results-sticky">
+    <div class="result-card">
+      <div class="result-header">
+        <h2>Resultado da Análise</h2>
+        <p id="res-modalidade">Extrajudicial · À vista</p>
+      </div>
+      <div class="result-body">
+
+        <!-- Desconto real -->
+        <div class="result-metric">
+          <div class="metric-label">
+            Desconto real sobre mercado
+            <small>(mercado − lance) / mercado</small>
+          </div>
+          <div class="metric-value accent" id="res-desconto">—</div>
+        </div>
+
+        <!-- Custos totais -->
+        <div class="result-metric">
+          <div class="metric-label">
+            Total de custos
+            <small id="res-custos-detalhe">aquisição + manutenção + venda</small>
+          </div>
+          <div class="metric-value negative" id="res-custos">—</div>
+        </div>
+
+        <!-- Lucro bruto -->
+        <div class="result-metric">
+          <div class="metric-label">Lucro bruto (antes IR)</div>
+          <div class="metric-value" id="res-lucro-bruto">—</div>
+        </div>
+
+        <!-- IR -->
+        <div class="result-metric">
+          <div class="metric-label">
+            IR sobre ganho de capital
+            <small id="res-ir-base">Base = venda − custos deductíveis</small>
+          </div>
+          <div class="metric-value negative" id="res-ir">—</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Lucro líquido -->
+        <div class="result-metric">
+          <div class="metric-label" style="font-weight:700;color:var(--text)">Lucro Líquido</div>
+          <div class="metric-value total" id="res-lucro-liq">—</div>
+        </div>
+
+        <!-- Lucro % -->
+        <div class="result-metric">
+          <div class="metric-label">Lucro % sobre investimento</div>
+          <div class="metric-value" id="res-lucro-pct">—</div>
+        </div>
+
+        <!-- Lance máximo -->
+        <div class="result-metric">
+          <div class="metric-label">
+            Lance máximo para sua meta
+            <small id="res-meta-info">com 30% de lucro</small>
+          </div>
+          <div class="metric-value accent" id="res-lance-max">—</div>
+        </div>
+
+        <!-- Veredicto -->
+        <div id="res-verdict" class="verdict warn">
+          <span class="verdict-icon">⏳</span>
+          <span id="res-verdict-text">Preencha os dados para análise</span>
+        </div>
+
+        <!-- Mini breakdown -->
+        <div class="divider"></div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-bottom:8px;font-weight:700;letter-spacing:0.06em;">BREAKDOWN DE CUSTOS</div>
+        <table class="costs-table" id="costs-table"></table>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ===================== TAB 2: CHECKLIST ===================== -->
+<div id="tab-checklist" style="display:none">
+<div class="container-full">
+
+  <div style="margin-bottom:24px">
+    <div class="toggle-group" style="max-width:360px">
+      <button class="toggle-btn active" id="btn-cl-ext" onclick="switchChecklist('ext', this)">Extrajudicial</button>
+      <button class="toggle-btn" id="btn-cl-jud" onclick="switchChecklist('jud', this)">Judicial</button>
+    </div>
+  </div>
+
+  <div class="checklist-grid" id="checklist-container"></div>
+
+</div>
+</div>
+
+<!-- ===================== TAB 3: LANCES ===================== -->
+<div id="tab-lances" style="display:none">
+<div class="container-full">
+
+  <div class="section" style="margin-bottom:24px">
+    <div class="section-title">Simulador de Lances</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Preço de Mercado (R$)</label>
+        <input type="number" id="l_mercado" placeholder="300.000" value="300000" oninput="calcLances()">
+      </div>
+      <div class="field">
+        <label>Lance Mínimo (R$)</label>
+        <input type="number" id="l_minimo" placeholder="180.000" value="180000" oninput="calcLances()">
+      </div>
+      <div class="field">
+        <label>Custos estimados (%) <span class="label-hint">% do lance — use a aba viabilidade</span></label>
+        <div class="range-wrap">
+          <input type="range" id="l_custos_pct" min="10" max="40" step="1" value="22" oninput="syncRange('l_custos_pct','v_lcustos'); calcLances()">
+          <span class="range-val" id="v_lcustos">22%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Preço de Venda Esperado (R$)</label>
+        <input type="number" id="l_venda" placeholder="290.000" value="290000" oninput="calcLances()">
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tabela de Lances × Lucro</div>
+    <table class="lance-table">
+      <thead>
+        <tr>
+          <th>Lance</th>
+          <th>% do mercado</th>
+          <th>Custos</th>
+          <th>Lucro líquido</th>
+          <th>Lucro %</th>
+          <th>Classificação</th>
+        </tr>
+      </thead>
+      <tbody id="lances-tbody"></tbody>
+    </table>
+    <div class="nota" style="margin-top:16px">
+      <strong>Linha dourada</strong> = seu lance máximo ideal para 30% de lucro. <strong>IR não incluído</strong> nesta tabela simplificada — use a aba Viabilidade para o cálculo completo com IR.
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ===================== STATE =====================
+let pagamento = 'avista';
+
+// ===================== UI =====================
+function syncRange(id, labelId) {
+  const v = document.getElementById(id).value;
+  document.getElementById(labelId).textContent = v + '%';
+}
+
+function setPagamento(tipo) {
+  pagamento = tipo;
+  document.getElementById('btn-avista').classList.toggle('active', tipo === 'avista');
+  document.getElementById('btn-financiado').classList.toggle('active', tipo === 'financiado');
+  document.getElementById('bloco-financiamento').style.display = tipo === 'financiado' ? 'block' : 'none';
+  calcular();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-viabilidade').style.display = 'none';
+  document.getElementById('tab-checklist').style.display = 'none';
+  document.getElementById('tab-lances').style.display = 'none';
+  if (name === 'viabilidade') {
+    document.getElementById('tab-viabilidade').querySelector('.panel-content').classList.add('active');
+    document.getElementById('tab-viabilidade').style.display = 'block';
+  } else if (name === 'checklist') {
+    document.getElementById('tab-checklist').style.display = 'block';
+    renderChecklist('ext');
+  } else {
+    document.getElementById('tab-lances').style.display = 'block';
+    calcLances();
+  }
+}
+
+// fix: viabilidade tab uses panel-content class
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['viabilidade','checklist','lances'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.style.display = 'none';
+  });
+  const target = document.getElementById('tab-' + name);
+  if (target) target.style.display = 'block';
+  if (name === 'checklist') renderChecklist('ext');
+  if (name === 'lances') calcLances();
+}
+
+// ===================== HELPERS =====================
+function fmt(val) {
+  return 'R$ ' + Math.round(val).toLocaleString('pt-BR');
+}
+function fmtPct(val) {
+  return val.toFixed(1) + '%';
+}
+function n(id) {
+  return parseFloat(document.getElementById(id).value) || 0;
+}
+
+// ===================== CALCULADORA =====================
+function calcular() {
+  const mercado = n('preco_mercado');
+  const lance = n('meu_lance');
+  const venda = n('preco_venda');
+  const prazo = n('prazo') || 12;
+  const lucroMinPct = n('lucro_min') / 100;
+
+  const pctComissao = n('comissao_leiloeiro') / 100;
+  const pctItbi = n('itbi') / 100;
+  const pctRegistro = n('registro') / 100;
+  const pctCorretor = n('corretor') / 100;
+  const irAliq = n('ir_aliquota') / 100;
+  const advogado = n('advogado');
+  const reforma = n('reforma');
+  const condMes = n('condominio');
+  const iptuMes = n('iptu');
+
+  // Custos de aquisição
+  const custo_comissao = lance * pctComissao;
+  const custo_itbi = lance * pctItbi;
+  const custo_registro = lance * pctRegistro;
+  let custo_financiamento = 0;
+
+  if (pagamento === 'financiado') {
+    const entradaPct = n('entrada_pct') / 100;
+    const taxaAnual = n('taxa_juros') / 100;
+    const financiado = lance * (1 - entradaPct);
+    const taxaMensal = Math.pow(1 + taxaAnual, 1/12) - 1;
+    custo_financiamento = financiado * taxaMensal * prazo; // juros aproximados
+  }
+
+  // Custos de manutenção
+  const custo_manutencao = (condMes + iptuMes) * prazo;
+
+  // Custos de venda
+  const custo_corretor = venda * pctCorretor;
+
+  // Base de cálculo do IR (venda − todos os custos dedutíveis)
+  const custos_deducao_ir = lance + custo_comissao + custo_itbi + custo_registro + advogado + reforma + custo_financiamento;
+  const ganho_capital = Math.max(0, venda - custos_deducao_ir);
+  const custo_ir = ganho_capital * irAliq;
+
+  // Total de custos
+  const total_custos = custo_comissao + custo_itbi + custo_registro + advogado + reforma + custo_manutencao + custo_corretor + custo_ir + custo_financiamento;
+
+  // Resultados
+  const desconto = mercado > 0 ? (mercado - lance) / mercado * 100 : 0;
+  const lucro_bruto = venda - lance - (total_custos - custo_ir);
+  const lucro_liq = venda - lance - total_custos;
+  const lucro_pct = lance > 0 ? lucro_liq / lance * 100 : 0;
+
+  // Lance máximo para atingir meta de lucro
+  // lucro_liq = venda - lance*(1 + pctComissao + pctItbi + pctRegistro) - advogado - reforma - (condMes+iptuMes)*prazo - venda*pctCorretor - ganho_capital*irAliq
+  // Simplificado (sem IR para o cálculo do lance máximo):
+  const custos_fixos = advogado + reforma + custo_manutencao + custo_corretor;
+  const pct_lance = 1 + pctComissao + pctItbi + pctRegistro;
+  // lucro_min = lucroMinPct * lance_max → venda - lance_max*pct_lance - custos_fixos = lucroMinPct * lance_max
+  // venda - custos_fixos = lance_max * (pct_lance + lucroMinPct)
+  const lance_max = (venda - custos_fixos) / (pct_lance + lucroMinPct);
+
+  // ---- DOM ----
+  const tipo = document.getElementById('tipo_leilao').value;
+  document.getElementById('res-modalidade').textContent =
+    (tipo === 'ext' ? 'Extrajudicial' : 'Judicial') + ' · ' + (pagamento === 'avista' ? 'À vista' : 'Financiado');
+
+  document.getElementById('res-desconto').textContent = fmtPct(desconto);
+  document.getElementById('res-desconto').className = 'metric-value ' + (desconto >= 30 ? 'positive' : desconto >= 20 ? 'warn' : 'negative');
+
+  document.getElementById('res-custos').textContent = fmt(total_custos);
+  document.getElementById('res-lucro-bruto').textContent = fmt(lucro_bruto);
+  document.getElementById('res-lucro-bruto').className = 'metric-value ' + (lucro_bruto > 0 ? 'positive' : 'negative');
+
+  document.getElementById('res-ir').textContent = fmt(custo_ir);
+  document.getElementById('res-ir-base').textContent = 'Base: ' + fmt(ganho_capital);
+
+  document.getElementById('res-lucro-liq').textContent = fmt(lucro_liq);
+  document.getElementById('res-lucro-liq').className = 'metric-value total ' + (lucro_liq > 0 ? 'positive' : 'negative');
+
+  document.getElementById('res-lucro-pct').textContent = fmtPct(lucro_pct);
+  document.getElementById('res-lucro-pct').className = 'metric-value ' + (lucro_pct >= lucroMinPct*100 ? 'positive' : lucro_pct >= (lucroMinPct*100 * 0.7) ? 'warn' : 'negative');
+
+  document.getElementById('res-lance-max').textContent = fmt(lance_max);
+  document.getElementById('res-meta-info').textContent = 'com ' + Math.round(lucroMinPct*100) + '% de lucro';
+
+  // Verdict
+  const v = document.getElementById('res-verdict');
+  const vt = document.getElementById('res-verdict-text');
+  if (lance > lance_max) {
+    v.className = 'verdict stop';
+    vt.textContent = '⛔ Lance acima do máximo — meta de lucro não atingida';
+  } else if (lucro_pct >= lucroMinPct * 100) {
+    v.className = 'verdict go';
+    vt.textContent = '✅ Viável — lucro dentro da meta desejada';
+  } else if (lucro_pct >= lucroMinPct * 100 * 0.7) {
+    v.className = 'verdict warn';
+    vt.textContent = '⚠️ Margem apertada — revise os custos ou o lance';
+  } else {
+    v.className = 'verdict stop';
+    vt.textContent = '🚫 Inviável — lucro abaixo da meta';
+  }
+
+  // Breakdown
+  const rows = [
+    ['Lance', fmt(lance)],
+    ['+ Comissão leiloeiro', fmt(custo_comissao)],
+    ['+ ITBI', fmt(custo_itbi)],
+    ['+ Registro', fmt(custo_registro)],
+    ['+ Advogado', fmt(advogado)],
+    ['+ Reforma', fmt(reforma)],
+    ['+ Cond./IPTU (' + prazo + 'm)', fmt(custo_manutencao)],
+    pagamento === 'financiado' ? ['+ Juros financiamento', fmt(custo_financiamento)] : null,
+    ['+ Corretor', fmt(custo_corretor)],
+    ['+ IR (ganho de capital)', fmt(custo_ir)],
+    [null],
+    ['= Total investido', fmt(lance + total_custos)],
+    ['Preço de venda', fmt(venda)],
+    ['Lucro líquido', fmt(lucro_liq)],
+  ].filter(Boolean);
+
+  const table = document.getElementById('costs-table');
+  table.innerHTML = rows.map((r, i) => {
+    if (r[0] === null) return '<tr><td colspan="2"><div class="divider" style="margin:4px 0"></div></td></tr>';
+    const isTotal = r[0].startsWith('=') || r[0] === 'Lucro líquido';
+    return `<tr class="${isTotal ? 'total-row' : ''}">
+      <td>${r[0]}</td>
+      <td>${r[1]}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===================== CHECKLIST =====================
+const CHECKLIST_EXT = [
+  {
+    title: '📄 Matrícula do Imóvel',
+    badge: 'badge-ext',
+    items: [
+      { text: '<strong>Vaga de garagem autônoma</strong> — verificar se está na matrícula da unidade ou tem matrícula própria', risk: 'alto' },
+      { text: '<strong>Metragem e descrição</strong> — conferir se bate com o edital', risk: '' },
+      { text: '<strong>Foreira / Enfiteuse</strong> — imóvel de marinha ou municipal? Há laudêmio?', risk: 'alto' },
+      { text: '<strong>Ônus e gravames</strong> — outras penhoras, hipotecas, usufruto, etc.', risk: 'med' },
+      { text: '<strong>Alienação fiduciária registrada</strong> — confirmar que o credor tem legitimidade', risk: '' },
+      { text: '<strong>Consolidação da propriedade</strong> — data registrada na matrícula?', risk: '' },
+      { text: '<strong>Proprietário atual</strong> — CPF/CNPJ bate com o edital?', risk: '' },
+    ]
+  },
+  {
+    title: '📋 Edital',
+    badge: 'badge-ext',
+    items: [
+      { text: '<strong>Responsabilidade por dívidas</strong> — IPTU e condomínio ficam com quem?', risk: 'alto' },
+      { text: '<strong>Prazo entre consolidação e leilão</strong> — mínimo 60 dias da lei 9.514?', risk: 'med' },
+      { text: '<strong>Segundo leilão em até 15 dias</strong> do primeiro?', risk: '' },
+      { text: '<strong>Forma de pagamento</strong> — à vista? Financiamento permitido?', risk: '' },
+      { text: '<strong>Comissão do leiloeiro</strong> — qual percentual?', risk: '' },
+      { text: '<strong>Prazo para habilitação</strong> — registrei com antecedência?', risk: 'med' },
+      { text: '<strong>Notificação por edital</strong> — devedor foi notificado corretamente?', risk: 'alto' },
+    ]
+  },
+  {
+    title: '🔍 Pesquisa Documental',
+    badge: 'badge-ext',
+    items: [
+      { text: '<strong>CND de Condomínio</strong> — solicitar certidão negativa ao síndico', risk: 'alto' },
+      { text: '<strong>CND de IPTU</strong> — checar débitos na prefeitura', risk: 'alto' },
+      { text: '<strong>Processos do devedor</strong> — TJMG, TRT, Federal, Receita Federal', risk: 'med' },
+      { text: '<strong>Devedor contra o credor (banco)</strong> — processo questionando o leilão?', risk: 'alto' },
+      { text: '<strong>Imóvel em nome de terceiro suspeito</strong> — fraude à execução?', risk: 'med' },
+    ]
+  },
+  {
+    title: '👤 Análise do Ocupante',
+    badge: 'badge-ext',
+    items: [
+      { text: '<strong>Imóvel ocupado ou desocupado?</strong>', risk: '' },
+      { text: '<strong>Quem ocupa?</strong> Devedor, familiar, inquilino?', risk: '' },
+      { text: '<strong>Idoso acima de 80 anos?</strong> — avaliar risco de desocupação', risk: 'alto' },
+      { text: '<strong>Doença grave ou situação especial?</strong>', risk: 'med' },
+      { text: '<strong>Possibilidade de acordo amigável?</strong>', risk: '' },
+    ]
+  },
+];
+
+const CHECKLIST_JUD = [
+  {
+    title: '📄 Matrícula do Imóvel',
+    badge: 'badge-jud',
+    items: [
+      { text: '<strong>Vaga de garagem autônoma</strong> — matrícula separada?', risk: 'alto' },
+      { text: '<strong>Foreira / Enfiteuse</strong> — laudêmio incluso?', risk: 'alto' },
+      { text: '<strong>Ônus, hipotecas, penhoras</strong> — ordem de preferência', risk: 'med' },
+      { text: '<strong>Bem de família registrado</strong> — imóvel impenhorável?', risk: 'alto' },
+      { text: '<strong>Usufruto vitalício</strong> — quem tem direito de uso?', risk: 'alto' },
+      { text: '<strong>Prazo de usucapião a favor do ocupante</strong> — risco de impugnação?', risk: 'alto' },
+    ]
+  },
+  {
+    title: '📋 Edital',
+    badge: 'badge-jud',
+    items: [
+      { text: '<strong>Tipo de execução</strong> — condomínio, trabalhista, cível?', risk: '' },
+      { text: '<strong>Responsabilidade por IPTU e condomínio</strong> — subrogação no preço?', risk: 'alto' },
+      { text: '<strong>Dívidas prioritárias</strong> — ordem de pagamento definida?', risk: 'med' },
+      { text: '<strong>Forma de pagamento</strong> — parcelamento permitido? Qual % de entrada?', risk: '' },
+      { text: '<strong>Comissão do leiloeiro</strong> inclusa no lance ou somada?', risk: '' },
+      { text: '<strong>Penhora de fração ideal</strong> — fugir! Imóvel tem mais de um dono?', risk: 'alto' },
+    ]
+  },
+  {
+    title: '⚖️ Análise do Processo',
+    badge: 'badge-jud',
+    items: [
+      { text: '<strong>Devedor tem processo contra o credor?</strong> — risco de anulação', risk: 'alto' },
+      { text: '<strong>Agravo ou recurso pendente</strong> sobre o leilão?', risk: 'alto' },
+      { text: '<strong>Devedor é pessoa jurídica com recuperação judicial?</strong>', risk: 'med' },
+      { text: '<strong>Penhora anterior de outro credor?</strong> — concurso de credores', risk: 'med' },
+      { text: '<strong>Fase atual do processo</strong> — leilão já designado? Data confirmada?', risk: '' },
+      { text: '<strong>Valor da causa vs. dívida</strong> — há superávit para o devedor?', risk: '' },
+    ]
+  },
+  {
+    title: '🔍 Pesquisa Adicional',
+    badge: 'badge-jud',
+    items: [
+      { text: '<strong>CND de IPTU</strong> — edital fala de subrogação?', risk: 'alto' },
+      { text: '<strong>CND de Condomínio</strong> — se edital passar para arrematante, quanto é?', risk: 'alto' },
+      { text: '<strong>Processos do devedor</strong> — TJMG, TRT, Federal', risk: 'med' },
+      { text: '<strong>Perfil do devedor/ocupante</strong> — quem está no imóvel?', risk: '' },
+      { text: '<strong>Laudo de avaliação</strong> — valor indicado bate com mercado?', risk: 'med' },
+    ]
+  },
+];
+
+let checkStates = {};
+let currentCL = 'ext';
+
+function switchChecklist(tipo, btn) {
+  currentCL = tipo;
+  document.getElementById('btn-cl-ext').classList.toggle('active', tipo === 'ext');
+  document.getElementById('btn-cl-jud').classList.toggle('active', tipo === 'jud');
+  renderChecklist(tipo);
+}
+
+function renderChecklist(tipo) {
+  const data = tipo === 'ext' ? CHECKLIST_EXT : CHECKLIST_JUD;
+  const container = document.getElementById('checklist-container');
+  container.innerHTML = '';
+
+  data.forEach((section, si) => {
+    const total = section.items.length;
+    const key = tipo + '_' + si;
+    if (!checkStates[key]) checkStates[key] = new Array(total).fill(false);
+    const checked = checkStates[key].filter(Boolean).length;
+
+    const div = document.createElement('div');
+    div.className = 'checklist-section';
+    div.innerHTML = `
+      <div class="checklist-header">
+        <span class="${section.badge} badge">${tipo.toUpperCase()}</span>
+        <h3>${section.title}</h3>
+      </div>
+      <div class="checklist-body">
+        ${section.items.map((item, ii) => `
+          <div class="check-item ${item.risk === 'alto' ? 'alert' : ''} ${checkStates[key][ii] ? 'checked' : ''}"
+               onclick="toggleCheck('${tipo}',${si},${ii})">
+            <div class="check-box">${checkStates[key][ii] ? '✓' : ''}</div>
+            <div class="check-label">
+              ${item.text}
+              ${item.risk === 'alto' ? '<span class="risk-tag risk-alto">⚠️ RISCO ALTO</span>' : ''}
+              ${item.risk === 'med' ? '<span class="risk-tag risk-med">⚠️ ATENÇÃO</span>' : ''}
+            </div>
+          </div>
+        `).join('')}
+        <div class="checklist-progress">
+          <div class="checklist-progress-bar" style="width:${(checked/total*100).toFixed(0)}%"></div>
+        </div>
+        <div class="checklist-score">${checked}/${total} itens verificados</div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleCheck(tipo, si, ii) {
+  const key = tipo + '_' + si;
+  checkStates[key][ii] = !checkStates[key][ii];
+  renderChecklist(currentCL);
+}
+
+// ===================== LANCES =====================
+function calcLances() {
+  const mercado = parseFloat(document.getElementById('l_mercado').value) || 300000;
+  const minimo = parseFloat(document.getElementById('l_minimo').value) || 180000;
+  const venda = parseFloat(document.getElementById('l_venda').value) || 290000;
+  const custosPct = parseFloat(document.getElementById('l_custos_pct').value) / 100 || 0.22;
+
+  const tbody = document.getElementById('lances-tbody');
+
+  // Gerar lances de mínimo até mercado em incrementos
+  const range = [];
+  const step = Math.round((mercado - minimo) / 10 / 1000) * 1000 || 5000;
+  for (let l = minimo; l <= mercado * 1.05; l += step) {
+    range.push(Math.round(l));
+  }
+
+  // Lance máximo para 30%
+  const pctLance = 1 + custosPct;
+  const lanceMax30 = (venda) / (pctLance + 0.30);
+
+  tbody.innerHTML = range.map(lance => {
+    const custos = lance * custosPct;
+    const lucro = venda - lance - custos;
+    const lucro_pct = (lucro / lance * 100);
+    const pct_mercado = (lance / mercado * 100).toFixed(1);
+    const isMax = Math.abs(lance - lanceMax30) <= step / 2;
+
+    let cls = '';
+    let tag = '';
+    if (lucro_pct >= 30) { cls = 'risco-verde'; tag = '✅ Excelente'; }
+    else if (lucro_pct >= 20) { cls = 'risco-amarelo'; tag = '⚠️ Marginal'; }
+    else { cls = 'risco-vermelho'; tag = '🚫 Inviável'; }
+
+    return `<tr class="${isMax ? 'highlight-row' : ''}">
+      <td class="col-label">${isMax ? '⭐ ' : ''}${fmt(lance)}</td>
+      <td>${pct_mercado}%</td>
+      <td>${fmt(custos)}</td>
+      <td class="col-lucro">${fmt(lucro)}</td>
+      <td class="${lucro_pct >= 30 ? 'col-lucro' : lucro_pct >= 20 ? '' : 'metric-value negative'}">${lucro_pct.toFixed(1)}%</td>
+      <td><span class="risco-tag ${cls}">${tag}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  calcular();
+  // Ensure viabilidade tab is shown
+  document.getElementById('tab-viabilidade').style.display = 'block';
+  document.getElementById('tab-checklist').style.display = 'none';
+  document.getElementById('tab-lances').style.display = 'none';
+});
+</script>
+</body>
+</html>
